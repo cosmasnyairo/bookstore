@@ -58,4 +58,3 @@ def deleterecord(bookid):
 #insertrecord('Everything is F','M. Manson',2019,138212352)
 # updaterecord(3,title='Everything is F',author='M. Manson',year=2019,isbn=13918397192)
 # deleterecord(3)
-print(fetchall())
