@@ -40,10 +40,20 @@ def insert_command():
     list1.delete(0, END)
     list1.insert(END, (title_value.get(), author_value.get(),
                        year_value.get(), isbn_value.get()))
+    fetch_command()
+    e1.delete(0, END)
+    e2.delete(0, END)
+    e3.delete(0, END)
+    e4.delete(0, END)
 
 
 def delete_command():
     backend.deleterecord(selected_tuple[0])
+    e1.delete(0, END)
+    e2.delete(0, END)
+    e3.delete(0, END)
+    e4.delete(0, END)
+
     fetch_command()
 
 
