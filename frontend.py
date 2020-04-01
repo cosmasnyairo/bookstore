@@ -1,133 +1,118 @@
 # libraries
 from tkinter import *
-
 # files
-import backend
+from backend import Database
+
+db = Database('bookstore.db')
 
 
-def get_selected_row(event):
-    try:
-        global selected_tuple
-        index = list1.curselection()[0]
-        selected_tuple = list1.get(index)
-        e1.delete(0, END)
-        e1.insert(END, selected_tuple[1])
-        e2.delete(0, END)
-        e2.insert(END, selected_tuple[2])
-        e3.delete(0, END)
-        e3.insert(END, selected_tuple[3])
-        e4.delete(0, END)
-        e4.insert(END, selected_tuple[4])
-    except IndexError:
-        pass
+class Window(object):
+    def __init__(self, window):
+        self.window = window
+        window.wm_title('Book Store')
+        window.resizable(False, False)
 
+        labeltitle = ['Title', 'Author', 'Year', 'ISBN']
+        labelrows = [1, 1, 3, 3]
+        labelcolums = [1, 3, 1, 3]
 
-def fetch_command():
-    list1.delete(0, END)
-    for row in backend.fetchall():
-        list1.insert(END, row)
+        for lt, lr, lc in zip(labeltitle, labelrows, labelcolums):
+            label = Label(window, text=lt)
+            label.grid(row=lr, column=lc, padx=5, pady=5)
 
+        self.title_value = StringVar()
+        self. e1 = Entry(window, textvariable=self.title_value, width=30)
+        self.e1.grid(row=1, column=2, padx=5, pady=5)
 
-def search_command():
-    list1.delete(0, END)
-    for row in backend.search(title_value.get(), author_value.get(), year_value.get(), isbn_value.get()):
-        list1.insert(END, row)
+        self.author_value = StringVar()
+        self.e2 = Entry(window, textvariable=self.author_value, width=30)
+        self. e2.grid(row=1, column=4, padx=5, pady=5)
 
+        self.year_value = StringVar()
+        self.e3 = Entry(window, textvariable=self.year_value, width=30)
+        self.e3.grid(row=3, column=2, padx=5, pady=5)
 
-def insert_command():
-    backend.insertrecord(title_value.get(), author_value.get(),
-                         year_value.get(), isbn_value.get())
-    list1.delete(0, END)
-    list1.insert(END, (title_value.get(), author_value.get(),
-                       year_value.get(), isbn_value.get()))
-    fetch_command()
-    e1.delete(0, END)
-    e2.delete(0, END)
-    e3.delete(0, END)
-    e4.delete(0, END)
+        self.isbn_value = StringVar()
+        self.e4 = Entry(window, textvariable=self.isbn_value, width=30)
+        self.e4.grid(row=3, column=4, padx=5, pady=5)
 
+        self.list1 = Listbox(window, height=6, width=60)
+        self.list1.grid(row=4, column=1, rowspan=5,
+                        columnspan=8, padx=10, pady=10)
 
-def delete_command():
-    backend.deleterecord(selected_tuple[0])
-    e1.delete(0, END)
-    e2.delete(0, END)
-    e3.delete(0, END)
-    e4.delete(0, END)
+        sb1 = Scrollbar(window)
+        sb1.grid(row=4, column=5,  rowspan=5)
 
-    fetch_command()
+        # link listbox to scrollbar
+        self.list1.configure(yscrollcommand=sb1.set)
+        sb1.configure(command=self.list1.yview)
 
+        # bind function to widget event
+        self.list1.bind('<<ListboxSelect>>', self.get_selected_row)
 
-def update_command():
-    backend.updaterecord(selected_tuple[0], title_value.get(), author_value.get(),
-                         year_value.get(), isbn_value.get())
+        commands = [self.fetch_command, self.search_command, self.insert_command,
+                    self.update_command, self.delete_command, self.window.destroy]
+        buttontitle = ['Fetch all records', 'Search record',
+                       'Add record', 'Update record', 'Delete record', 'Close']
+        buttonrows = [9, 9, 9, 10, 10, 10]
+        buttoncolumns = [2, 3, 4, 2, 3, 4]
 
-    fetch_command()
+        for (c, bt, br, bc) in zip(commands, buttontitle, buttonrows, buttoncolumns):
+            button = Button(window, text=bt, width=20, command=c)
+            button.grid(row=br, column=bc, padx=5, pady=5)
+
+    def get_selected_row(self, event):
+        try:
+            index = self.list1.curselection()[0]
+            self.selected_tuple = self.list1.get(index)
+            self. e1.delete(0, END)
+            self.e1.insert(END, self.selected_tuple[1])
+            self. e2.delete(0, END)
+            self. e2.insert(END, self.selected_tuple[2])
+            self. e3.delete(0, END)
+            self. e3.insert(END, self.selected_tuple[3])
+            self.e4.delete(0, END)
+            self.e4.insert(END, self.selected_tuple[4])
+        except IndexError:
+            pass
+
+    def fetch_command(self):
+        self.list1.delete(0, END)
+        for row in db.fetchall():
+            self.list1.insert(END, row)
+
+    def search_command(self):
+        self.list1.delete(0, END)
+        for row in db.search(self.title_value.get(), self.author_value.get(), self.year_value.get(), self. isbn_value.get()):
+            self.list1.insert(END, row)
+
+    def insert_command(self):
+        db.insertrecord(self.title_value.get(), self.author_value.get(),
+                        self.year_value.get(), self.isbn_value.get())
+        self.list1.delete(0, END)
+        self.list1.insert(END, (self.title_value.get(), self.author_value.get(),
+                                self.year_value.get(), self.isbn_value.get()))
+        self.fetch_command()
+        self.e1.delete(0, END)
+        self.e2.delete(0, END)
+        self.e3.delete(0, END)
+        self.e4.delete(0, END)
+
+    def delete_command(self):
+        db.deleterecord(self.selected_tuple[0])
+        self.e1.delete(0, END)
+        self.e2.delete(0, END)
+        self.e3.delete(0, END)
+        self.e4.delete(0, END)
+        self.fetch_command()
+
+    def update_command(self):
+        db.updaterecord(self.selected_tuple[0], self.title_value.get(), self.author_value.get(),
+                        self.year_value.get(), self.isbn_value.get())
+
+        self.fetch_command()
 
 
 window = Tk()
-
-window.wm_title('Book Store')
-window.resizable(False, False)
-
-l1 = Label(window, text='Title')
-l1.grid(row=1, column=1, padx=5, pady=5)
-
-title_value = StringVar()
-e1 = Entry(window, textvariable=title_value, width=30)
-e1.grid(row=1, column=2, padx=5, pady=5)
-
-l2 = Label(window, text='Author')
-l2.grid(row=1, column=3, padx=5, pady=5)
-
-author_value = StringVar()
-e2 = Entry(window, textvariable=author_value, width=30)
-e2.grid(row=1, column=4, padx=5, pady=5)
-
-
-l3 = Label(window, text='Year')
-l3.grid(row=3, column=1, padx=5, pady=5)
-
-year_value = StringVar()
-e3 = Entry(window, textvariable=year_value, width=30)
-e3.grid(row=3, column=2, padx=5, pady=5)
-
-
-l4 = Label(window, text='ISBN')
-l4.grid(row=3, column=3, padx=5, pady=5)
-
-isbn_value = StringVar()
-e4 = Entry(window, textvariable=isbn_value, width=30)
-e4.grid(row=3, column=4, padx=5, pady=5)
-
-list1 = Listbox(window, height=6, width=60)
-list1.grid(row=4, column=1, rowspan=5, columnspan=8, padx=10, pady=10)
-
-sb1 = Scrollbar(window)
-sb1.grid(row=4, column=5,  rowspan=5)
-
-# link listbox to scrollbar
-list1.configure(yscrollcommand=sb1.set)
-sb1.configure(command=list1.yview)
-
-# bind function to widget event
-list1.bind('<<ListboxSelect>>', get_selected_row)
-
-b1 = Button(window, text='Fetch all records', width=20, command=fetch_command)
-b1.grid(row=9, column=2, padx=5, pady=5)
-
-b2 = Button(window, text='Search record', width=20, command=search_command)
-b2.grid(row=9, column=3, padx=5, pady=5)
-
-b3 = Button(window, text='Add record', width=20, command=insert_command)
-b3.grid(row=9, column=4, padx=5, pady=5)
-width = 20
-b4 = Button(window, text='Update record', width=20, command=update_command)
-b4.grid(row=10, column=2, padx=5, pady=5)
-
-b5 = Button(window, text='Delete record', width=20, command=delete_command)
-b5.grid(row=10, column=3, padx=5, pady=5)
-
-b5 = Button(window, text='Close', width=20, command=window.destroy)
-b5.grid(row=10, column=4, padx=5, pady=5)
-
+Window(window)
 window.mainloop()
